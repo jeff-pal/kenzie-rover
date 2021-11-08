@@ -1,1 +1,1 @@
-export type ReadLineCallback= (line:string, writeStream: null | NodeJS.WriteStream) => void;
+export type ReadLineCallback= (line:string, writeStream?: null | NodeJS.WriteStream) => void;

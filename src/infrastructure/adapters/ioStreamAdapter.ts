@@ -35,7 +35,13 @@ export default class IoStreamAdapter implements IoStream {
     }
 
     readLine(callBack:ReadLineCallback) {
+        this.inputStream.on('data', (data:string) => {
+            data = data.replace(/(\n)+$/g, "");
+            const chunks = data.split('\n');
 
-        this.inputStream.on('data', (line: string) => callBack(line, this.outputStream));
+            chunks.forEach(chunk => {
+                callBack(chunk);
+            });
+        });
     }
 }
