@@ -1,9 +1,5 @@
 import SpaceProbeController from "../protocols/spaceProbeController";
-
-function warn(text) {
-    console.log(`\u001b[31m${text}`);
-    process.stdout.write('\u001b[0m');
-}
+import warn from "../../helpers/warn";
 
 export default class SpaceProbeControllerAdapter implements SpaceProbeController{
     plateauMeshCoordinates = {
@@ -17,15 +13,15 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         }
     }
     
-    entrySpaceProbe = {
-        name: null,
+    entryInstruction = {
+        spaceProbeName: null,
         initialPosition: null,
         directions: null
     }
     
     questionIndex = 0;
     
-    spaceProbes = [];
+    instructionQueueExit = [];
     test:string;
 
     questions = [
@@ -33,9 +29,6 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         'Initial position (x y d): ',
         'Directions: '
     ];
-
-
-    getInstructionsSequency: () => void;
     
     nexQuestion() {
         this.questionIndex =  (this.questionIndex + 1) % this.questions.length;
@@ -120,14 +113,18 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
     }
     
     clearEntrySpaceProbe() {
-        this.entrySpaceProbe.name = null;
-        this.entrySpaceProbe.initialPosition = null;
-        this.entrySpaceProbe.directions = null;
+        this.entryInstruction.spaceProbeName = null;
+        this.entryInstruction.initialPosition = null;
+        this.entryInstruction.directions = null;
     }
 
-    processIncomingInstruction(data:string) {
+    processIncomingInstruction (instruction) {
+        console.log('instruction:');
+        console.log(instruction);
+    };
+
+    getInstructionsSequency(data:string, remainingData: boolean) {
         console.clear();
-        
         if(this.topRightCoordinateIsNotSet()) {
             const topRightCoordinate = this.getTopRightCoordinate(data);
 
@@ -139,24 +136,28 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
             }
 
         } else {
-            if(this.entrySpaceProbe.name) {
+            if(this.entryInstruction.spaceProbeName) {
                 const directions = this.getDirections(data);
                 if(directions) {
-                    this.entrySpaceProbe.directions = directions;
-                    this.spaceProbes.push(this.entrySpaceProbe);
-                    console.log(this.spaceProbes);
+
+                    this.entryInstruction.directions = directions;
+                    this.instructionQueueExit.push(this.entryInstruction);
+                    this.processIncomingInstruction(this.entryInstruction)
                     this.clearEntrySpaceProbe();
                     this.nexQuestion();
                 }
             } else {
                 const spaceProbeInitialPosition = this.getSpaceProbeInitialPosition(data);
                 if(spaceProbeInitialPosition) {
-                    this.entrySpaceProbe.name = this.spaceProbes.length + 1;
-                    this.entrySpaceProbe.initialPosition = spaceProbeInitialPosition;
+                    this.entryInstruction.spaceProbeName = this.instructionQueueExit.length + 1;
+                    this.entryInstruction.initialPosition = spaceProbeInitialPosition;
                     this.nexQuestion();
                 }
             }
         }
-        console.log(this.questions[this.questionIndex]);
+        if(remainingData) {
+            console.log(this.questions[this.questionIndex]);
+        }
+        
     }
 }
