@@ -38,9 +38,12 @@ export default class IoStreamAdapter implements IoStream {
         this.inputStream.on('data', (data:string) => {
             data = data.replace(/(\n)+$/g, "");
             const chunks = data.split('\n');
+            let isTyping = this.inputStream.isTTY; 
 
-            chunks.forEach(chunk => {
-                callBack(chunk);
+
+            chunks.forEach((chunk, index) => {
+                const remainingData = isTyping || index < chunks.length-1; 
+                callBack(chunk, remainingData);
             });
         });
     }
