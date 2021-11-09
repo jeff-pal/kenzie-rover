@@ -1,4 +1,4 @@
 export default interface SpaceProbeController {
-    getInstructionsSequency: (data:string) => void;
-    processIncomingInstruction: () => void;
+    getInstructionsSequency: (data:string, remainingData: boolean) => void;
+    processIncomingInstruction: (instructions) => void;
 } 
