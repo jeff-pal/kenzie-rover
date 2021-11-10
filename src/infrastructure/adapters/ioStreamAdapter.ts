@@ -18,7 +18,7 @@ export default class IoStreamAdapter implements IoStream {
         let input: null | NodeJS.ReadStream = process.stdin;
         input.resume();
         input.setEncoding( 'utf8' );
-        
+
         try {
             if(filePath) {
                 input = fs.createReadStream(filePath);
@@ -42,7 +42,7 @@ export default class IoStreamAdapter implements IoStream {
 
             chunks.forEach((chunk, index) => {
                 const remainingData = isTyping || index < chunks.length-1; 
-                callBack(chunk, remainingData);
+                callBack(chunk, remainingData, this.outputStream);
             });
         });
     }
