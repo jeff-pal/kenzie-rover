@@ -13,9 +13,14 @@
   },
   "bin": "./bin/cli.js",
   "scripts": {
-    "start": "npm run build && node build/app",
+    "start": "node build/app",
     "dev": "ts-node app",
-    "build": "tsc"
+    "build": "tsc",
+    "docker:build": "docker build -t img-kz-rover .",
+    "docker:stop": "docker rm cont-kz-rover",
+    "docker:rm": "docker rm cont-kz-rover",
+    "docker-image:rm": "docker image rm img-kz-rover",
+    "docker:clear": "npm run docker:stop && npm run docker:rm && npm run docker-image:rm"
   },
   "engines": {
     "node": ">=14.18.1"
