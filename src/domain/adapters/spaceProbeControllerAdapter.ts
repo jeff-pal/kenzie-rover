@@ -1,5 +1,7 @@
 import SpaceProbeController from "../protocols/spaceProbeController";
 import {log, warn} from "../../helpers/adapters/consoleAdapter";
+import { Coordinate } from "../../types";
+import GreedyBestFirstSearch from "../../data/greedyBestFirstSearch";
 
 export default class SpaceProbeControllerAdapter implements SpaceProbeController{
     outputStream?: NodeJS.WriteStream;
@@ -13,25 +15,21 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
             y: 0
         }
     }
-    
     entryInstruction = {
         spaceProbeName: null,
         initialPosition: null,
-        directions: null
+        commands: null
     }
-    
     questionIndex = 0;
-    
     instructionQueueExit = [];
-    test:string;
-
     questions = [
         'Top Right Coordinate (x y): ',
         'Initial position (x y d): ',
         'Directions: '
     ];
-    
     cardinalCoordinates = ['N', 'E', 'S', 'W'];
+
+    placedSpaceProbes: Coordinate[] = [];
 
     nexQuestion() {
         this.questionIndex =  (this.questionIndex + 1) % this.questions.length;
@@ -82,13 +80,13 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         } else {
             const x = Number(entryValues[0]);
             const y = Number(entryValues[1]);
-            const d = entryValues[2];
+            const cardinalDirection = entryValues[2];
         
             if(isNaN(x)) {
                 warn("'x' is not a number!");
             } else if(isNaN(y)) {
                 warn("'y' is not a number!");
-            } else if(this.isInvalidCardinalDirection(d)) {
+            } else if(this.isInvalidCardinalDirection(cardinalDirection)) {
                 warn("Invalid direction!");
             } else if(x > this.plateauMeshCoordinates.limit.x) {
                 warn(`'x' must to be less than or equal to ${this.plateauMeshCoordinates.limit.x}`);
@@ -100,7 +98,7 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
                 warn(`'y' must to be greater than or equal to ${this.plateauMeshCoordinates.limit.y}`);
             }
             else {
-                return { x, y, d }
+                return { x, y, cardinalDirection }
             }
         }
     
@@ -118,7 +116,7 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
     clearEntrySpaceProbe() {
         this.entryInstruction.spaceProbeName = null;
         this.entryInstruction.initialPosition = null;
-        this.entryInstruction.directions = null;
+        this.entryInstruction.commands = null;
     }
 
     isToRotate(command: string) {
@@ -131,20 +129,100 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         return command === 'M';
     }
 
+    positionIsBusy(x, y) {
+        return this.placedSpaceProbes.find(item => item[0] === x && item[1] === y);
+    }
+
+    findPath(currentPosition, positionToGo) {
+        const topRightCorner: Coordinate = [
+            this.plateauMeshCoordinates.limit.x,
+            this.plateauMeshCoordinates.limit.y
+        ];
+
+        const origin: Coordinate = [
+            currentPosition.heldIn.x,
+            currentPosition.heldIn.y
+        ]
+
+        const destination: Coordinate = [
+            positionToGo.x,
+            positionToGo.y
+        ]
+
+        const greedyBestFirstSearch = new GreedyBestFirstSearch(
+            this.placedSpaceProbes,
+            topRightCorner,
+            origin,
+            destination
+        )
+
+        const bestPath = greedyBestFirstSearch.search();
+        
+        if(bestPath) {
+            currentPosition.heldIn = {};
+            currentPosition.unauthorizedMovement = 0;
+        }
+        return currentPosition;
+    }
+
+    processPosition(currentPosition, positionToGo) {
+        if(currentPosition.unauthorizedMovement) {
+            currentPosition = this.findPath(currentPosition, positionToGo)
+        } else if(this.positionIsBusy(positionToGo.x, positionToGo.y)) {
+            currentPosition.heldIn = {
+                x: currentPosition.x,
+                y: currentPosition.y,
+            };
+            currentPosition.unauthorizedMovement++;
+        }
+        currentPosition.x = positionToGo.x;
+        currentPosition.y = positionToGo.y;
+
+        return currentPosition;
+    }
+
+    moveToEast(currentPosition) {
+        if(currentPosition.x < this.plateauMeshCoordinates.limit.x) {
+            const positionToGo = {x: currentPosition.x + 1, y: currentPosition.y};
+            currentPosition = this.processPosition(currentPosition, positionToGo);
+        }
+        return currentPosition;
+    }
+
+    moveToWest(currentPosition) {
+        if(currentPosition.x > this.plateauMeshCoordinates.initial.x) {
+            const positionToGo = {x: currentPosition.x - 1, y: currentPosition.y};
+            currentPosition = this.processPosition(currentPosition, positionToGo);
+        }
+        return currentPosition;
+    }
+
+    moveToNorth(currentPosition) {
+        if(currentPosition.y < this.plateauMeshCoordinates.limit.y) {
+            const positionToGo = {x: currentPosition.x, y: currentPosition.y + 1};
+            currentPosition = this.processPosition(currentPosition, positionToGo);
+        }
+        return currentPosition;
+    }
+
+    moveToSouth(currentPosition) {
+        if(currentPosition.y > this.plateauMeshCoordinates.initial.y) {
+            const positionToGo = {x: currentPosition.x, y: currentPosition.y - 1};
+            currentPosition = this.processPosition(currentPosition, positionToGo);
+        }
+        return currentPosition;
+    }
+
     move(direction: string, currentPosition) {
         switch (direction.toUpperCase()) {
             case 'E':
-                currentPosition.x++;
-                break;
+                return this.moveToEast(currentPosition);
             case 'W':
-                currentPosition.x--;
-                break;
+                return this.moveToWest(currentPosition);
             case 'N':
-                currentPosition.y++;
-                break;
+                return this.moveToNorth(currentPosition);
             case 'S':
-                currentPosition.y--;
-                break;
+                return this.moveToSouth(currentPosition);
             default:
                 break;
         }
@@ -165,29 +243,39 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
     }
 
     processIncomingInstruction (instruction) {
-        const movements = instruction.directions;
+        const commands = instruction.commands;
 
-        let currentDirection = instruction.initialPosition.d;
-        let currentDirectionIndex = this.cardinalCoordinates.indexOf(currentDirection);
+        let cardinalDirection = instruction.initialPosition.cardinalDirection;
+        let cardinalDirectionIndex = this.cardinalCoordinates.indexOf(cardinalDirection);
+        
         let currentPosition = {
             x: instruction.initialPosition.x,
             y: instruction.initialPosition.y,
-            d: currentDirection
+            cardinalDirection,
+            unauthorizedMovement: 0,
+            heldIn: {
+                x: null,
+                y: null
+            }
         }
         
-        movements.forEach((movement, index) => {
-            movement = movement.toUpperCase();
+        commands.forEach(command => {
+            command = command.toUpperCase();
             
-            if(this.isToMove(movement)) {
-                currentPosition = this.move(currentDirection, currentPosition);
-            } else if(this.isToRotate(movement)) {
-                currentDirectionIndex = this.rotate(movement, currentDirectionIndex);
+            if(this.isToMove(command)) {
+                currentPosition = this.move(cardinalDirection, currentPosition);
+            } else if(this.isToRotate(command)) {
+                cardinalDirectionIndex = this.rotate(command, cardinalDirectionIndex);
             }
-            currentDirection = this.cardinalCoordinates[currentDirectionIndex]
-            currentPosition.d = currentDirection;
+            cardinalDirection = this.cardinalCoordinates[cardinalDirectionIndex]
+            currentPosition.cardinalDirection = cardinalDirection;
             
         });
-        this.outputStream.write(`${currentPosition.x} ${currentPosition.y} ${currentPosition.d}\n`)
+        const x = currentPosition.unauthorizedMovement > 0 ? currentPosition.heldIn?.x : currentPosition.x;
+        const y = currentPosition.unauthorizedMovement > 0 ? currentPosition.heldIn?.y : currentPosition.y;
+
+        this.placedSpaceProbes.push([x, y]);
+        this.outputStream.write(`${x} ${y} ${cardinalDirection}\n`)
     };
 
     getInstructionsSequency(data:string, remainingData: boolean, outputStream?: NodeJS.WriteStream) {
@@ -204,9 +292,9 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
 
         } else {
             if(this.entryInstruction.spaceProbeName) {
-                const directions = this.getDirections(data);
-                if(directions) {
-                    this.entryInstruction.directions = directions;
+                const commands = this.getDirections(data);
+                if(commands) {
+                    this.entryInstruction.commands = commands;
                     this.instructionQueueExit.push(this.entryInstruction);
                     this.processIncomingInstruction(this.entryInstruction)
                     this.clearEntrySpaceProbe();
@@ -221,9 +309,5 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
                 }
             }
         }
-        if(remainingData) {
-            log(this.questions[this.questionIndex]);
-        }
-        
     }
 }
