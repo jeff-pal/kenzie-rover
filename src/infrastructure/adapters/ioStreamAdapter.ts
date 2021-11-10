@@ -15,14 +15,13 @@ export default class IoStreamAdapter implements IoStream {
     }
 
     getInputStream(filePath: string): NodeJS.ReadStream | null {
-        let input: null | NodeJS.ReadStream;
+        let input: null | NodeJS.ReadStream = process.stdin;
+        input.resume();
+        input.setEncoding( 'utf8' );
+        
         try {
             if(filePath) {
                 input = fs.createReadStream(filePath);
-            } else {
-                input = process.stdin;
-                input.resume();
-                input.setEncoding( 'utf8' );
             }
             return input;
         } catch (error) {
