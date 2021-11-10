@@ -73,7 +73,7 @@ node build/app < your-file
 \
 > run: node build/app   
 
-## Execução via Docker
+## Running Through Docker
 
 ### Prerequisites
 
