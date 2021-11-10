@@ -1,0 +1,9 @@
+services:
+  kz-rover:
+    build: .
+    image: img-kz-rover
+    container_name: cont-kz-rover
+    tty: true
+    entrypoint: /bin/sh
+    volumes:
+      - ./resources:/src/kz-rover/resources
