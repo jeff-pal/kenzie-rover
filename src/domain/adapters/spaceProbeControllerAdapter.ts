@@ -1,7 +1,8 @@
 import SpaceProbeController from "../protocols/spaceProbeController";
-import warn from "../../helpers/warn";
+import {log, warn} from "../../helpers/adapters/consoleAdapter";
 
 export default class SpaceProbeControllerAdapter implements SpaceProbeController{
+    outputStream?: NodeJS.WriteStream;
     plateauMeshCoordinates = {
         limit: {
             x: 0,
@@ -120,66 +121,84 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         this.entryInstruction.directions = null;
     }
 
-    isRotation(direction: string) {
-        direction = direction.toUpperCase();
-        return this.cardinalCoordinates.includes(direction);
+    isToRotate(command: string) {
+        command = command.toUpperCase();
+        return command === 'R' || command === 'L';
+    }
+
+    isToMove(command: string) {
+        command = command.toUpperCase();
+        return command === 'M';
+    }
+
+    move(direction: string, currentPosition) {
+        switch (direction.toUpperCase()) {
+            case 'E':
+                currentPosition.x++;
+                break;
+            case 'W':
+                currentPosition.x--;
+                break;
+            case 'N':
+                currentPosition.y++;
+                break;
+            case 'S':
+                currentPosition.y--;
+                break;
+            default:
+                break;
+        }
+        return currentPosition;
+    }
+
+    rotate(command: string, currentDirectionIndex: number) {
+        command = command.toUpperCase();
+        if(command === 'R') {
+            currentDirectionIndex = (currentDirectionIndex + 1) % this.cardinalCoordinates.length;
+
+        } else if(command === 'L') {
+            const lastDirectionIndex = this.cardinalCoordinates.length - 1;
+            const leftDirectionIndex = currentDirectionIndex - 1;
+            currentDirectionIndex = currentDirectionIndex === 0 ? lastDirectionIndex : leftDirectionIndex;
+        }
+        return currentDirectionIndex;
     }
 
     processIncomingInstruction (instruction) {
-        console.log('instruction:');
-        console.log(instruction);
         const movements = instruction.directions;
 
         let currentDirection = instruction.initialPosition.d;
         let currentDirectionIndex = this.cardinalCoordinates.indexOf(currentDirection);
-        const currentPosition = {
+        let currentPosition = {
             x: instruction.initialPosition.x,
-            y: instruction.initialPosition.y
+            y: instruction.initialPosition.y,
+            d: currentDirection
         }
-
-        movements.forEach(movement => {
+        
+        movements.forEach((movement, index) => {
             movement = movement.toUpperCase();
             
-            if(movement === 'M') {
-                switch (currentDirection.toUpperCase()) {
-                    case 'E':
-                        currentPosition.x++;
-                        break;
-                    case 'W':
-                        currentPosition.x--;
-                        break;
-                    case 'N':
-                        currentPosition.y++;
-                        break;
-                    case 'S':
-                        currentPosition.y--;
-                        break;
-                    default:
-                        break;
-                }
-                console.log(currentPosition);
-                
-            } else if(movement === 'R') {
-                currentDirectionIndex = (currentDirectionIndex + 1) % this.cardinalCoordinates.length;
-
-            } else if(movement === 'L') {
-                const lastDirectionIndex = this.cardinalCoordinates.length - 1;
-                const leftDirectionIndex = currentDirectionIndex - 1;
-                currentDirectionIndex = currentDirectionIndex === 0 ? lastDirectionIndex : leftDirectionIndex;
+            if(this.isToMove(movement)) {
+                currentPosition = this.move(currentDirection, currentPosition);
+            } else if(this.isToRotate(movement)) {
+                currentDirectionIndex = this.rotate(movement, currentDirectionIndex);
             }
             currentDirection = this.cardinalCoordinates[currentDirectionIndex]
+            currentPosition.d = currentDirection;
+            
         });
+        this.outputStream.write(`${currentPosition.x} ${currentPosition.y} ${currentPosition.d}\n`)
     };
 
-    getInstructionsSequency(data:string, remainingData: boolean) {
-        console.clear();
+    getInstructionsSequency(data:string, remainingData: boolean, outputStream?: NodeJS.WriteStream) {
+        this.outputStream = outputStream;
+        log(data);
         if(this.topRightCoordinateIsNotSet()) {
             const topRightCoordinate = this.getTopRightCoordinate(data);
 
             if(topRightCoordinate) {
                 this.plateauMeshCoordinates.limit.x = topRightCoordinate.maxX;
                 this.plateauMeshCoordinates.limit.y = topRightCoordinate.maxY;
-                console.log(this.plateauMeshCoordinates);
                 this.nexQuestion();
             }
 
@@ -187,7 +206,6 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
             if(this.entryInstruction.spaceProbeName) {
                 const directions = this.getDirections(data);
                 if(directions) {
-
                     this.entryInstruction.directions = directions;
                     this.instructionQueueExit.push(this.entryInstruction);
                     this.processIncomingInstruction(this.entryInstruction)
@@ -204,7 +222,7 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
             }
         }
         if(remainingData) {
-            console.log(this.questions[this.questionIndex]);
+            log(this.questions[this.questionIndex]);
         }
         
     }
