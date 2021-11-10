@@ -5,7 +5,7 @@ import { log } from './src/helpers/adapters/consoleAdapter';
 const args = process.argv.slice(2)
 const fileFlag = args.indexOf('-f');
 
-let filePath: null | string = fileFlag >= 0 ? process.argv[fileFlag + 1] : null;
+let filePath: null | string = fileFlag >= 0 ? args[fileFlag + 1] : null;
 
 const ioStream = new IoStreamAdapter(filePath);
 const spaceProbeController = new SpaceProbeControllerAdapter();
