@@ -155,6 +155,6 @@ export default class GreedyBestFirstSearch {
 				this.bestPath.unshift([i,j]);
 			}
 		}
-		return this.bestPath;
+		return this.bestPath.length > 0 ? this.bestPath : false;
 	}
 }
