@@ -2,6 +2,7 @@ const fs = require('fs');
 
 import IoStream from '../protocols/ioStream';
 import { ReadLineCallback } from '../../types';
+import { exit } from 'process';
 
 export default class IoStreamAdapter implements IoStream {
     private readonly filePath      : string;
@@ -16,17 +17,15 @@ export default class IoStreamAdapter implements IoStream {
 
     getInputStream(filePath: string): NodeJS.ReadStream | null {
         let input: null | NodeJS.ReadStream = process.stdin;
-        input.resume();
-        input.setEncoding( 'utf8' );
-
-        try {
-            if(filePath) {
+        if(filePath) {
+            try {
                 input = fs.createReadStream(filePath);
+            } catch (error) {
+                console.log(error);
             }
-            return input;
-        } catch (error) {
-            console.log(error);
         }
+        input.setEncoding( 'utf8' );
+        return input;
     }
 
     getOutputStream(): NodeJS.WriteStream | null {
@@ -38,7 +37,6 @@ export default class IoStreamAdapter implements IoStream {
             data = data.replace(/(\n)+$/g, "");
             const chunks = data.split('\n');
             let isTyping = this.inputStream.isTTY; 
-
 
             chunks.forEach((chunk, index) => {
                 const remainingData = isTyping || index < chunks.length-1; 
