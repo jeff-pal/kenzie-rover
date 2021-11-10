@@ -30,6 +30,8 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         'Directions: '
     ];
     
+    cardinalCoordinates = ['N', 'E', 'S', 'W'];
+
     nexQuestion() {
         this.questionIndex =  (this.questionIndex + 1) % this.questions.length;
         if(this.questionIndex === 0) {
@@ -118,9 +120,55 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         this.entryInstruction.directions = null;
     }
 
+    isRotation(direction: string) {
+        direction = direction.toUpperCase();
+        return this.cardinalCoordinates.includes(direction);
+    }
+
     processIncomingInstruction (instruction) {
         console.log('instruction:');
         console.log(instruction);
+        const movements = instruction.directions;
+
+        let currentDirection = instruction.initialPosition.d;
+        let currentDirectionIndex = this.cardinalCoordinates.indexOf(currentDirection);
+        const currentPosition = {
+            x: instruction.initialPosition.x,
+            y: instruction.initialPosition.y
+        }
+
+        movements.forEach(movement => {
+            movement = movement.toUpperCase();
+            
+            if(movement === 'M') {
+                switch (currentDirection.toUpperCase()) {
+                    case 'E':
+                        currentPosition.x++;
+                        break;
+                    case 'W':
+                        currentPosition.x--;
+                        break;
+                    case 'N':
+                        currentPosition.y++;
+                        break;
+                    case 'S':
+                        currentPosition.y--;
+                        break;
+                    default:
+                        break;
+                }
+                console.log(currentPosition);
+                
+            } else if(movement === 'R') {
+                currentDirectionIndex = (currentDirectionIndex + 1) % this.cardinalCoordinates.length;
+
+            } else if(movement === 'L') {
+                const lastDirectionIndex = this.cardinalCoordinates.length - 1;
+                const leftDirectionIndex = currentDirectionIndex - 1;
+                currentDirectionIndex = currentDirectionIndex === 0 ? lastDirectionIndex : leftDirectionIndex;
+            }
+            currentDirection = this.cardinalCoordinates[currentDirectionIndex]
+        });
     };
 
     getInstructionsSequency(data:string, remainingData: boolean) {
