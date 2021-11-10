@@ -10,11 +10,11 @@ This application is responsible for reading instructions in lines through standa
 
 The application was written in _Javascript/Typescript_ language, and is based on _Node.Js_.
 
-**Node.js** is a _runtime_ environment for Javascript(JS), _open-source_ and cross-platform, used to run JS code outside of a web browser. It is an environment used to build scalable web applications, employing a non-blocking, event-oriented I/O model, making it fast and light in resources.
+[**Node.js**](https://nodejs.org/) is a _runtime_ environment for Javascript(JS), _open-source_ and cross-platform, used to run JS code outside of a web browser. It is an environment used to build scalable web applications, employing a non-blocking, event-oriented I/O model, making it fast and light in resources.
 
-Whereas, **TypeScript(TS)**, in short, is a strict syntactic _superset_ for JavaScript, allowing the code to declare static typing since JS does not have this property. The use of TS facilitates the identification of possible failures, even at compile time, in addition to making the code more concise, reliable and readable.
+Whereas, [**TypeScript(TS)**](https://www.typescriptlang.org/), in short, is a strict syntactic _superset_ for JavaScript, allowing the code to declare static typing since JS does not have this property. The use of TS facilitates the identification of possible failures, even at compile time, in addition to making the code more concise, reliable and readable.
 
-In addition to Node.js and TS as the main base features of this project, **Jest**, a testing framework maintained by Facebook, was also added.
+In addition to Node.js and TS as the main base features of this project, [**Jest**](https://jestjs.io/), a testing framework maintained by Facebook, was also added.
 
 Furthermore, no other library or framework resources were used. Therefore, the imports made in the codes are either author-implemented codes or native functionality of Node.js and JS itself.
 
