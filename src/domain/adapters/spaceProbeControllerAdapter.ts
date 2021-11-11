@@ -1,5 +1,5 @@
 import SpaceProbeController from "../protocols/spaceProbeController";
-import {log, warn} from "../../helpers/adapters/consoleAdapter";
+import { logger } from "../../helpers/adapters/consoleAdapter";
 import { Coordinate } from "../../types";
 import GreedyBestFirstSearch from "../../data/greedyBestFirstSearch";
 
@@ -49,13 +49,13 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         const entryValues = entry.split(' ');
     
         if (entryValues.length !== 2) {
-            warn('Invalid top right coordinate point!');
+            logger.warn('Invalid top right coordinate point!');
         } else {
             const maxX = Number(entryValues[0]);
             const maxY = Number(entryValues[1]);
             
             if(isNaN(maxX) || isNaN(maxY)) {
-                warn('Invalid data format!');
+                logger.warn('Invalid data format!');
                 return;
             }
             return { maxX, maxY }
@@ -82,26 +82,26 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         const entryValues = entry.split(' ');
     
         if (entryValues.length !== 3) {
-            warn('Invalid initial position!');
+            logger.warn('Invalid initial position!');
         } else {
             const x = Number(entryValues[0]);
             const y = Number(entryValues[1]);
             const cardinalDirection = entryValues[2];
         
             if(isNaN(x)) {
-                warn("'x' is not a number!");
+                logger.warn("'x' is not a number!");
             } else if(isNaN(y)) {
-                warn("'y' is not a number!");
+                logger.warn("'y' is not a number!");
             } else if(this.isInvalidCardinalDirection(cardinalDirection)) {
-                warn("Invalid direction!");
+                logger.warn("Invalid direction!");
             } else if(x > this.plateauMeshCoordinates.limit.x) {
-                warn(`'x' must to be less than or equal to ${this.plateauMeshCoordinates.limit.x}`);
+                logger.warn(`'x' must to be less than or equal to ${this.plateauMeshCoordinates.limit.x}`);
             } else if(y > this.plateauMeshCoordinates.limit.y) {
-                warn(`'y' must to be less than or equal to ${this.plateauMeshCoordinates.limit.y}`);
+                logger.warn(`'y' must to be less than or equal to ${this.plateauMeshCoordinates.limit.y}`);
             } else if(x < this.plateauMeshCoordinates.initial.x) {
-                warn(`'x' must to be greater than or equal to ${this.plateauMeshCoordinates.limit.x}`);
+                logger.warn(`'x' must to be greater than or equal to ${this.plateauMeshCoordinates.limit.x}`);
             } else if(y < this.plateauMeshCoordinates.initial.y) {
-                warn(`'y' must to be greater than or equal to ${this.plateauMeshCoordinates.limit.y}`);
+                logger.warn(`'y' must to be greater than or equal to ${this.plateauMeshCoordinates.limit.y}`);
             }
             else {
                 return { x, y, cardinalDirection }
@@ -283,12 +283,13 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
         const y = currentPosition.unauthorizedMovement > 0 ? currentPosition.heldIn?.y : currentPosition.y;
 
         this.placedSpaceProbes.push([x, y]);
-        this.outputStream.write(`${x} ${y} ${cardinalDirection}\n`)
+        this.outputStream.write(`\u001b[35m${x} ${y} ${cardinalDirection}\n`);
+        this.outputStream.write('\u001b[0m');
     };
 
     getInstructionsSequency(data:string, remainingData: boolean, outputStream?: NodeJS.WriteStream) {
         this.outputStream = outputStream;
-        log(data);
+        logger.log(data);
         if(this.topRightCoordinateIsNotSet()) {
             const topRightCoordinate = this.getTopRightCoordinate(data);
 
@@ -316,6 +317,9 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
                     this.nexQuestion();
                 }
             }
+        }
+        if(remainingData) {
+            logger.log(this.questions[this.questionIndex]);
         }
     }
 }

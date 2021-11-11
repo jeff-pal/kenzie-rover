@@ -14,7 +14,7 @@ export default class IoStreamAdapter implements IoStream {
         this.inputStream = this.getInputStream(this.filePath);
     }
 
-    getInputStream(filePath: string): NodeJS.ReadStream | null {
+    private getInputStream(filePath: string): NodeJS.ReadStream | null {
         let input: null | NodeJS.ReadStream = process.stdin;
         if(filePath) {
             try {
@@ -27,7 +27,7 @@ export default class IoStreamAdapter implements IoStream {
         return input;
     }
 
-    getOutputStream(): NodeJS.WriteStream | null {
+    private getOutputStream(): NodeJS.WriteStream | null {
         return process.stdout;
     }
 

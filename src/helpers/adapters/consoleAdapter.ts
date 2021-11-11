@@ -20,17 +20,21 @@ class ConsoleAdapter implements Console {
             process.stdout.write('\u001b[0m');
         }
     }
+
+    result(...props) {
+        if(this.iterativeMode) {
+            console.log(`\u001b[35m`, ...props);
+            process.stdout.write('\u001b[0m');
+        }
+    }
 }
 
 const args = process.argv.slice(2);
 const iterativeMode = Boolean(args.includes('--it'));    
-const consoleAdapter = new ConsoleAdapter(iterativeMode);
-const log = (...props) => consoleAdapter.log(...props);
-const warn = (...props) => consoleAdapter.warn(...props);
+const logger = new ConsoleAdapter(iterativeMode);
 
 export {
-    log,
-    warn,
+    logger,
 };
 
 
