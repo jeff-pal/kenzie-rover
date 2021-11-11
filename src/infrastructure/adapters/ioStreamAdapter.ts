@@ -2,7 +2,6 @@ const fs = require('fs');
 
 import IoStream from '../protocols/ioStream';
 import { ReadLineCallback } from '../../types';
-import { exit } from 'process';
 
 export default class IoStreamAdapter implements IoStream {
     private readonly filePath      : string;
