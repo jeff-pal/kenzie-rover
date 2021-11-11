@@ -72,7 +72,9 @@ node build/app < your-file
 #### Application Available Flags
 
 `-f`: Indicates File. It must be followed by a file path.
+
 `--it`: Indicates iterative mode. It means for each input needed it'll log the input format expected.
+
 `--ncd`: Detect collision. It means to detect possible collisions and apply the Greedy algorithm to search for alternative paths to reach the destination position in the plateau mesh.
 
 ### Command Summary
