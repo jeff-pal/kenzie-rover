@@ -17,10 +17,10 @@ export default class IoStreamAdapter implements IoStream {
     private getInputStream(filePath: string): NodeJS.ReadStream | null {
         let input: null | NodeJS.ReadStream = process.stdin;
         if(filePath) {
-            try {
+            if (fs.existsSync(filePath)) {
                 input = fs.createReadStream(filePath);
-            } catch (error) {
-                console.log(error);
+            } else {
+                throw new Error('No such file!');
             }
         }
         input.setEncoding( 'utf8' );
