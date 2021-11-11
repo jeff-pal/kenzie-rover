@@ -22,6 +22,12 @@ Furthermore, no other library or framework resources were used. Therefore, the i
 
 Overall, the focus remained on a simple and functional application. Although the context presented is a technical challenge, the objective was to develop an application adaptable to other technologies and capable of meeting a real demand for use, therefore, we sought to maintain the **decoupling** between the logical entities, keeping the higher-level layers (**Domain/Business**) and lower-level layers (**Infrastructure**), making them more independent from each other, through the principle of **Dependency Inversion (DI)**.
 
+# Assumptions
+
+## [Greedy Algorithm](https://en.wikipedia.org/wiki/Greedy_algorithm)
+<img alt="Greedy chart" src="greedy.png">
+
+
 # Run
 
 There are two way to running this application:
