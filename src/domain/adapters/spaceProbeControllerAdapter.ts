@@ -172,14 +172,16 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
     }
 
     processPosition(currentPosition, positionToGo) {
-        if(this.detectCollision && currentPosition.unauthorizedMovement) {
-            currentPosition = this.findPath(currentPosition, positionToGo)
-        } else if(this.positionIsBusy(positionToGo.x, positionToGo.y)) {
-            currentPosition.heldIn = {
-                x: currentPosition.x,
-                y: currentPosition.y,
-            };
-            currentPosition.unauthorizedMovement++;
+        if(this.detectCollision) {
+            if(currentPosition.unauthorizedMovement) {
+                currentPosition = this.findPath(currentPosition, positionToGo)
+            } else if(this.positionIsBusy(positionToGo.x, positionToGo.y)) {
+                currentPosition.heldIn = {
+                    x: currentPosition.x,
+                    y: currentPosition.y,
+                };
+                currentPosition.unauthorizedMovement++;
+            }
         }
         currentPosition.x = positionToGo.x;
         currentPosition.y = positionToGo.y;
