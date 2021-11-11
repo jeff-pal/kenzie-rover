@@ -31,6 +31,12 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
 
     placedSpaceProbes: Coordinate[] = [];
 
+    detectCollision: boolean;
+
+    constructor(detectCollision) {
+        this.detectCollision = detectCollision;
+    }
+
     nexQuestion() {
         this.questionIndex =  (this.questionIndex + 1) % this.questions.length;
         if(this.questionIndex === 0) {
@@ -166,7 +172,7 @@ export default class SpaceProbeControllerAdapter implements SpaceProbeController
     }
 
     processPosition(currentPosition, positionToGo) {
-        if(currentPosition.unauthorizedMovement) {
+        if(this.detectCollision && currentPosition.unauthorizedMovement) {
             currentPosition = this.findPath(currentPosition, positionToGo)
         } else if(this.positionIsBusy(positionToGo.x, positionToGo.y)) {
             currentPosition.heldIn = {

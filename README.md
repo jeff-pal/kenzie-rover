@@ -24,7 +24,14 @@ Overall, the focus remained on a simple and functional application. Although the
 
 # Assumptions
 
-## [Greedy Algorithm](https://en.wikipedia.org/wiki/Greedy_algorithm)
+## Greedy Best-First Search
+
+if it is considered that the probes operate in the same plane, that is, they coexist in the grid of the plain, then we must detect and avoid collision.
+
+Thus, when a command is given to move the probe in a certain direction, and the target position is occupied by another probe, the command must not be executed. Only in the next command is the target position recalculated and then the [Greedy algorithm](https://en.wikipedia.org/wiki/Greedy_algorithm) is applied to find an alternative path to reach the target position. 
+
+This strategy is **not applied by default**, to run the application with collision detection, use the `--cd` flag. See the **Run Section** further.
+
 <img alt="Greedy chart" src="greedy.png">
 
 
@@ -65,7 +72,8 @@ node build/app < your-file
 #### Application Available Flags
 
 `-f`: Indicates File. It must be followed by a file path.
-`--it`: Indicates iterative mode. It means for each input needed it'll log the input format expected. 
+`--it`: Indicates iterative mode. It means for each input needed it'll log the input format expected.
+`--ncd`: Detect collision. It means to detect possible collisions and apply the Greedy algorithm to search for alternative paths to reach the destination position in the plateau mesh.
 
 ### Command Summary
 
