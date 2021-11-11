@@ -1,6 +1,6 @@
 import IoStreamAdapter from './src/infrastructure/adapters/ioStreamAdapter';
 import SpaceProbeControllerAdapter from './src/domain/adapters/spaceProbeControllerAdapter';
-import { log } from './src/helpers/adapters/consoleAdapter';
+import { logger } from './src/helpers/adapters/consoleAdapter';
 
 const args = process.argv.slice(2)
 const fileFlag = args.indexOf('-f');
@@ -15,5 +15,5 @@ function readLineCallback(data, remainingData, outputStream) {
     spaceProbeController.getInstructionsSequency(data, remainingData, outputStream)
 }
 
-log('Top Right Coordinate (x y): ');
+logger.log('Top Right Coordinate (x y): ');
 ioStream.readLine(readLineCallback);
