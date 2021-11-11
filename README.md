@@ -169,3 +169,11 @@ docker-compose up
 docker exec -it cont-kz-rover sh
 node build/app < ./resources/your-file
 ```
+
+# Testing
+
+To run the available tests you must run:
+
+```bash
+npm run test
+```
